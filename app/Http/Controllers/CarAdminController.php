@@ -6,6 +6,7 @@ use App\Models\Car;
 use App\Models\Manufacturer;
 use App\Models\Mf;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 
@@ -19,12 +20,20 @@ class CarAdminController extends Controller
     public function index()
     {
         //
-        $cars = Car::all();
-        // return view('viewCar', ['cars'=> $cars]);
-        if (count($cars) > 0) {
-            return response()->json(["status" => 200, "success" => true, "count" => count($cars), "data" => $cars]);
+        // $cars = Car::all();
+        // // return view('viewCar', ['cars'=> $cars]);
+        // if (count($cars) > 0) {
+        //     return response()->json(["status" => 200, "success" => true, "count" => count($cars), "data" => $cars]);
+        // } else {
+        //     return response()->json(["status" => "failed", "success" => false, "message" => "Whoops! no record found"]);
+        // }
+        $cars = Car::join('mfs', 'mfs.id', 'cars.mf_id')
+            ->select('mfs.mf_name as name_mfs', 'cars.*')
+            ->paginate(20);
+        if ($cars) {
+            return response()->json($cars, Response::HTTP_OK);
         } else {
-            return response()->json(["status" => "failed", "success" => false, "message" => "Whoops! no record found"]);
+            return response()->json([]);
         }
     }
 
@@ -37,7 +46,7 @@ class CarAdminController extends Controller
     {
         //
         // return view('addNewCar', ['manufacturers'=>Manufacturer::all()]); 
-        return view('addNewCar', ['mfs'=>Mf::all()]);
+        return view('addNewCar', ['mfs' => Mf::all()]);
     }
 
     /**
@@ -112,7 +121,7 @@ class CarAdminController extends Controller
         $car = new Car();
         $car->description = $request->input('description');
         $car->model = $request->input('model');
-        $car->mf_id=$request->mf_id;
+        $car->mf_id = $request->mf_id;
         $car->produced_on = $request->input('produced_on');
         $car->image = $name;
         $car->save();
@@ -199,7 +208,7 @@ class CarAdminController extends Controller
         // $car->save();
 
         // return redirect()->route('cars.index')->with('success', 'Bạn đã cập nhật thành công');
-         
+
         $name = '';
         if ($request->hasfile('image')) {
             $file = $request->file('image');
@@ -209,9 +218,9 @@ class CarAdminController extends Controller
         }
 
         $car = Car::find($id);;
-        $car->description = $request-> input('description');
+        $car->description = $request->input('description');
         $car->model = $request->input('model');
-        $car->mf_id=$request->mf_id;
+        $car->mf_id = $request->mf_id;
         $car->produced_on = $request->input('produced_on');
         $car->image = $name;
         $car->save();
@@ -240,5 +249,13 @@ class CarAdminController extends Controller
         }
         $car->delete();
         // return redirect()->route('cars.index')->with('success', 'Bạn đã xóa thành công');
+    }
+    public function search(Request $request)
+    {
+        $cars = Car::join('mfs', 'mfs.id', 'cars.mf_id')
+            ->where('model', 'like', '%' . $request->search . '%')
+            ->select('mfs.mf_name as name_mfs', 'cars.*')
+            ->get();
+        return response()->json($cars, Response::HTTP_OK);
     }
 }

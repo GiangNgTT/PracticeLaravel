@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CarAdminController;
+use App\Http\Controllers\MfController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +19,11 @@ use App\Http\Controllers\CarAdminController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+// Route::get('index', [CarAdminController::class,'index']);
 Route::apiResource('cars', CarAdminController::class);
-Route::post('cars/{id}', [CarAdminController::class,'update'] );
+Route::apiResource('mf', MfController::class);
+Route::get('show', [CarAdminController::class, 'search']);
+// Route::get('cars', CarAdminController::class);
+// Route::post('cars/{id}', [CarAdminController::class,'update'] );
+// Route::get('index',[MfController::class, "index"]);
 
